@@ -8,6 +8,9 @@
 
 ---
 
+![](images/banner.png)
+---
+
 ## COURSE DESCRIPTION
 
 Modern engineering systems increasingly rely on cloud-based, AI-driven data processing, automation, and analytics. This course equips Systems Engineering students with the coding skills needed to interact with cloud-hosted data, automate workflows, and build scalable AI-powered apps and analytics. Students will gain hands-on experience in querying web APIs, building APIs, and leveraging AI models for automation. Topics include API calls, querying Generative AI, and automation, all to serve automated data reporting. Participants will learn to examine and critique uses of AI in modern systems, considering risk, value, tradeoffs, and policy issues for the customer and society. By the end of the course, students will have built cloud-hosted, AI-powered applications and reporting systems that can dynamically retrieve, process, and visualize data using generative AI.
