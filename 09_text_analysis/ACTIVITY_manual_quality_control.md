@@ -1,6 +1,6 @@
 # 📌 ACTIVITY
 
-## Manual Text Quality Control
+## Quality Control for AI Text
 
 🕒 *Estimated Time: 10-15 minutes*
 
