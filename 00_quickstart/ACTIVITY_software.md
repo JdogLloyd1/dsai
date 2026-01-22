@@ -12,11 +12,11 @@ Install Python and/or R programming languages, along with an Integrated Developm
 
 ### 🧱 Stage 1: Install Your IDE
 
-Choose one or more IDEs based on your preferences:
+Choose Cursor, plus any other IDEs based on your preferences:
 
-- [ ] **VS Code** (recommended for beginners): 🔗 [Download VS Code](https://code.visualstudio.com/download)
-- [ ] **Cursor** (AI-powered editor): 🔗 [Download Cursor](https://cursor.com/) (1 year free for students)
-- [ ] **RStudio** (R-focused IDE): 🔗 [Download RStudio](https://posit.co/download/rstudio-desktop/)
+- [ ] **Cursor** (Required - AI-powered editor): 🔗 [Download Cursor](https://cursor.com/) (1 year free for students)
+- [ ] **Positron** (Data Science-focused IDE): 🔗 [Download Positron](https://positron.posit.co/download.html)
+- [ ] **VS Code**: 🔗 [Download VS Code](https://code.visualstudio.com/download)
 
 **Note:** If you install RStudio, R will be installed automatically with it.
 
@@ -29,7 +29,7 @@ Choose one or more IDEs based on your preferences:
 - [ ] After installation, update the `PATH` for Python in this repository's [`.bashrc` file](.bashrc)
 - [ ] Open **Git Bash** and run `source .bashrc` to load the settings for your session
 
-### 🧱 Stage 3: Install R (if not using RStudio)
+### 🧱 Stage 3: Install R (if not using Positron)
 
 - [ ] Go to the 🔗 [CRAN download page](https://cran.r-project.org/mirrors.html)
 - [ ] Select a mirror close to your location
