@@ -23,7 +23,7 @@ Then, complete the following steps!
 
 - [ ] Update [`.bashrc`](.bashrc) with your Python and R paths
 - [ ] Open **Git Bash** terminal and load your settings with `source .bashrc`
-- [ ] Run `source setup/dependencies.sh` to load **R** and/or **Python** dependencies
+- [ ] Run `source 00_quickstart/dependencies.sh` to load **R** and/or **Python** dependencies
 - [ ] Start coding!
 
 ### 🔧 REMINDER: Load Your Settings
