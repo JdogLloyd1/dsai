@@ -24,7 +24,7 @@ jobs:
       
       - name: Setup SSH for private submodule
         run: |
-          # Check if SSH key secret exists and is not empty
+          # Check if SSH key secret exists and is not empty 
           SSH_KEY="${{ secrets.SUBMODULE_SSH_KEY }}"
           
           # Trim whitespace and check if empty
