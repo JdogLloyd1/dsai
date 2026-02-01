@@ -1,40 +1,118 @@
 # 04_lab_query.py
 # Query the MBTA API for Lab 1
 # Design a query returning 10-20 rows and document the results
-# Jonathan Lloyd 
+# Jonathan Lloyd
 
-# Load environment variables from .env file
+# Fetches Red Line service alerts, departures from Alewife, and arrivals to Alewife
+# (near-term and future) with current stop from the Vehicles endpoint.
+
+# 0. Setup #################################################################
+
+## 0.1 Load Packages ######################################################
+
 import os  # for reading environment variables
-import requests  # for making HTTP requests
+import pandas as pd  # for DataFrames
+import requests  # for HTTP requests
+from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv  # for loading variables from .env
 
+## 0.2 Load Environment ####################################################
+
 load_dotenv(".env")
-
 MBTA_API_KEY = os.getenv("MBTA_API_KEY")
+BASE_URL = "https://api-v3.mbta.com"
+HEADERS = {"x-api-key": MBTA_API_KEY} if MBTA_API_KEY else {}
 
-# Query Plan #########################################################
-# ADD PLAN HERE
+# Query Plan ###############################################################
+# Service Alerts: Red Line alerts (Severity, Description, Start/End Time, Active/Inactive)
+# Departures: From Alewife (Destination, Scheduled/Estimated Departure, Status)
+# Near-term Arrivals: To Alewife in next 10 min (Current stop, Scheduled/Estimated Arrival, Status)
+# Future Arrivals: To Alewife in next 60 min (Current stop, Scheduled/Estimated Arrival, Status)
 
 
-# Query Implementation #################################################
-response = requests.get(
-    "https://api-v3.mbta.com/vehicles",
-    headers={"x-api-key": MBTA_API_KEY},
-    # ADD PARAMETERS HERE
-    # params={"filter[route]": "Red"},
+# 1. API Calls #############################################################
+
+# Fetch Red Line service alerts
+alerts_response = requests.get(
+    f"{BASE_URL}/alerts",
+    headers=HEADERS,
+    params={"filter[route]": "Red"},
 )
+if alerts_response.status_code != 200:
+    print("Alerts request failed:", alerts_response.status_code, alerts_response.text)
+    exit(1)
+else:
+    print("Alerts request successful")
+    print(alerts_response.json())
+
+# Fetch predictions at Alewife (departures and arrivals) with schedule, trip, stop, vehicle
+predictions_response = requests.get(
+    f"{BASE_URL}/predictions",
+    headers=HEADERS,
+    params={
+        "filter[stop]": "place-alfcl", # Alewife Station code
+        "filter[route]": "Red",
+        "include": "schedule,trip,stop,vehicle",
+    },
+)
+if predictions_response.status_code != 200:
+    print("Predictions request failed:", predictions_response.status_code, predictions_response.text)
+    exit(1)
+else:
+    print("Predictions request successful")
+    print(predictions_response.json())
+
+# Fetch Red Line vehicles to get current stop per vehicle (for matching by vehicle_id)
+vehicles_response = requests.get(
+    f"{BASE_URL}/vehicles",
+    headers=HEADERS,
+    params={"filter[route]": "Red", "include": "trip,stop"},
+)
+if vehicles_response.status_code != 200:
+    print("Vehicles request failed:", vehicles_response.status_code, vehicles_response.text)
+    exit(1)
+else:
+    print("Vehicles request successful")
+    print(vehicles_response.json())
+
+# # 2. Parse Alerts ###########################################################
+
+# # Build Service Alerts DataFrame: Severity, Description, Start Time, End Time, Status
+# SEVERITY_MAP = {1: "Information", 2: "Warning", 3: "Emergency"}
+
+# alerts_rows = []
+# for item in alerts_response.json().get("data", []):
+#     attrs = item.get("attributes", {})
+#     severity_val = attrs.get("severity")
+#     severity_label = SEVERITY_MAP.get(severity_val, str(severity_val) if severity_val is not None else "Unknown")
+#     description = attrs.get("description") or attrs.get("short_header") or attrs.get("header") or ""
+#     active_periods = attrs.get("active_period") or []
+#     now = datetime.now(timezone.utc)
+#     status = "Inactive"
+#     start_time = None
+#     end_time = None
+#     if active_periods:
+#         first = active_periods[0]
+#         start_str = first.get("start")
+#         end_str = first.get("end")
+#         if start_str:
+#             start_time = datetime.fromisoformat(start_str.replace("Z", "+00:00"))
+#         if end_str:
+#             end_time = datetime.fromisoformat(end_str.replace("Z", "+00:00"))
+#         if start_time and (end_time is None or now < end_time) and now >= start_time:
+#             status = "Active"
+#     alerts_rows.append({
+#         "Severity": severity_label,
+#         "Description": description[:200] if description else "",
+#         "Start Time": start_time,
+#         "End Time": end_time,
+#         "Status": status,
+#     })
+
+# df_alerts = pd.DataFrame(alerts_rows)
 
 
-# Inspect Response #####################################################
-print("Status code: ", response.status_code, "\n")
-print("Response: ", response.json())
 
 
-# Document Results #####################################################
-print("Number of records: ", len(response.json()["data"]))
-print("Key fields: ", response.json()["data"][0].keys())
-print("Data structure: ", response.json()["data"][0])
-
-
-# Clear Environment #####################################################
+# Clear Environment ########################################################
 globals().clear()
