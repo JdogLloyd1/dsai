@@ -75,44 +75,6 @@ else:
     print("Vehicles request successful")
     print(vehicles_response.json())
 
-# # 2. Parse Alerts ###########################################################
-
-# # Build Service Alerts DataFrame: Severity, Description, Start Time, End Time, Status
-# SEVERITY_MAP = {1: "Information", 2: "Warning", 3: "Emergency"}
-
-# alerts_rows = []
-# for item in alerts_response.json().get("data", []):
-#     attrs = item.get("attributes", {})
-#     severity_val = attrs.get("severity")
-#     severity_label = SEVERITY_MAP.get(severity_val, str(severity_val) if severity_val is not None else "Unknown")
-#     description = attrs.get("description") or attrs.get("short_header") or attrs.get("header") or ""
-#     active_periods = attrs.get("active_period") or []
-#     now = datetime.now(timezone.utc)
-#     status = "Inactive"
-#     start_time = None
-#     end_time = None
-#     if active_periods:
-#         first = active_periods[0]
-#         start_str = first.get("start")
-#         end_str = first.get("end")
-#         if start_str:
-#             start_time = datetime.fromisoformat(start_str.replace("Z", "+00:00"))
-#         if end_str:
-#             end_time = datetime.fromisoformat(end_str.replace("Z", "+00:00"))
-#         if start_time and (end_time is None or now < end_time) and now >= start_time:
-#             status = "Active"
-#     alerts_rows.append({
-#         "Severity": severity_label,
-#         "Description": description[:200] if description else "",
-#         "Start Time": start_time,
-#         "End Time": end_time,
-#         "Status": status,
-#     })
-
-# df_alerts = pd.DataFrame(alerts_rows)
-
-
-
 
 # Clear Environment ########################################################
 globals().clear()
