@@ -12,7 +12,7 @@ Deploy your application to Posit Cloud Connect using the official documentation.
 
 ### 🧱 Stage 1: Review Documentation
 
-- [ ] Visit the [Posit Cloud Connect documentation](https://docs.posit.co/cloud-connect/)
+- [ ] Visit the [Posit Cloud Connect documentation](https://docs.posit.co/connect-cloud/)
 - [ ] Review deployment requirements and setup instructions
 - [ ] Ensure your application meets the prerequisites
 
