@@ -1,4 +1,4 @@
-# 📌 LAB
+# 📌 MIDTERM
 
 ## DL Challenge: AI-Powered Database Pipeline
 
@@ -24,7 +24,7 @@ Design, implement, and deploy a multi-part AI-powered system that demonstrates y
 
 ### Task 1: Design Your System
 
-- [ ] Choose 1 of 3 provided problems to solve (given day of)
+- [ ] **Choose 1 of 3 provided problems to solve (given day of)**
 - [ ] Design a pipeline that integrates:
   - **Supabase database** (data storage)
   - **REST API** (data access layer)

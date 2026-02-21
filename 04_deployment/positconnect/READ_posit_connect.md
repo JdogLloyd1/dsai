@@ -1,6 +1,6 @@
 # 📌 READ
 
-## Posit Connect
+## Posit Connect - A private deployment server
 
 🕒 *Estimated Time: 2-3 minutes*
 
