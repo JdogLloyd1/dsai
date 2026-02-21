@@ -8,8 +8,10 @@
 
 ## Table of Contents
 
-- [Activities](#activities)
-- [Deployment Platforms](#deployment-platforms)
+- [README `/deployment`](#readme-deployment)
+  - [Table of Contents](#table-of-contents)
+  - [Activities](#activities)
+  - [Deployment Platforms](#deployment-platforms)
 
 ---
 
