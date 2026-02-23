@@ -96,7 +96,13 @@ Choose from:
 ![](../../docs/images/pc_actions_list.png)
 - [ ] Once the workflow completes successfully, log into `connect.systems-apps.com` and verify your application appears in the dashboard
 ![](../../docs/images/pc_deployed_list.png)
-- [ ] Click on your deployed application to test it
+- [ ] Click on your deployed application to test it. Compare your version to mine at:
+
+  - Shiny Python at: https://connect.systems-apps.com/04_deployment/positconnect/shinypy/
+  - Shiny R at: https://connect.systems-apps.com/04_deployment/positconnect/shinyr/
+  - FastAPI at: https://connect.systems-apps.com/04_deployment/positconnect/fastapi/
+  - Plumber at: https://connect.systems-apps.com/04_deployment/positconnect/plumber/
+
 
 For further customization, try the following:
 
