@@ -58,6 +58,10 @@ Choose from:
 - [ ] Please select the appropriate template, copy it, and put it in a file at this path in  your repo: `.github/workflows/<NAME_OF_YOUR_FILE>.yml`. 
 - Note: It **must** go in the `.github/workflows` folder; this is a reserved name for Github actions.
 - [ ] Adjust the `paths` section to match your repository structure.
+  - For example, to adjust this Shiny Python app's yml, you could...
+  ![](../../docs/images/pc_deploy_shinypy.png)
+     - [ ] Update paths in **Lines 7-8**, which say **if these files change, go redeploy the app**.
+     - [ ] Update path in `dir` argument on **Line 29**.
 - [ ] Commit and push the workflow file to your repository
 
 <br>
@@ -66,7 +70,9 @@ Choose from:
 ### 🧱 Stage 3: Test Deployment
 
 - [ ] Push your changes to the `main` branch (or trigger the workflow manually via **Actions** → **Deploy [Your App] to Posit Connect** → **Run workflow**)
-- [ ] Check the **Actions** tab in your GitHub repository to see the workflow running
+- [ ] Check the **Actions** tab in your GitHub repository to see the workflow running. 
+   - In the example below, we deployed 4 separate apps via 4 `.yaml` docs. 2 actions succeeded (shinyr and plumber) and 2 actions failed (shinypy and fastapi). 
+![](../../docs/images/pc_actions_list.png)
 - [ ] Once the workflow completes successfully, log into `connect.systems-apps.com` and verify your application appears in the dashboard
 - [ ] Click on your deployed application to test it
 
