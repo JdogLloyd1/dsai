@@ -10,173 +10,58 @@
 
 In this activity, you will set up **GitHub Actions** to automatically deploy your applications to **Posit Connect** when you push code to your repository.
 
-### 🧱 Stage 1: Set Up GitHub Secrets
+### 🧱 Stage 1: Create Posit Connect API Key
+
+- [ ] An email from connect.systems-apps.com has been sent to you, inviting you to join our Posit Connect server. Please accept the invite. (It probably went to your Spam Folder!)
+- [ ] Navigate to Your Account's **Manage Your API Keys** page.
+![](../../docs/images/pc_keys_where.png)
+- [ ] Navigate to API Keys and select **"+ New API Key"**.
+![](../../docs/images/pc_keys_view.png)
+- [ ] Create a new API Key. Give it **Publisher** level access, a logical name, and click **Create Key**.
+![](../../docs/images/pc_keys_new.png)
+- [ ] Copy your new API Key and store it somewhere safe. You will only ever see it one time. If you miss it, you'll need to create a new API key.
+![](../../docs/images/pc_keys_copy.png)
+
+<br>
+---
+
+### 🧱 Stage 2: Set Up GitHub Secrets
 
 You need to configure two secrets in your GitHub repository for **Posit Connect** deployment:
 
 - [ ] Go to your GitHub repository and navigate to **Settings** → **Secrets and variables** → **Actions**
+![](../../docs/images/pc_github_settings.png)
 - [ ] Click **New repository secret**
+![](../../docs/images/pc_github_secrets.png)
 - [ ] Create a secret named `CONNECT_SERVER` with the value `https://connect.systems-apps.com`
-- [ ] Create another secret named `CONNECT_API_KEY` with your **Publisher API key** from Posit Connect
-  - To get your API key: Log into `connect.systems-apps.com`, go to your account settings, and create a new **Publisher** API key
+![](../../docs/images/pc_github_secrets_CONNECT_SERVER.png)
+- [ ] Create another secret named `CONNECT_API_KEY` with your **Publisher API key** from Posit Connect. 
+  - (Remember: To get your API key: Log into `connect.systems-apps.com`, go to your account settings, and create a new **Publisher** API key)
+- [ ] At the end, your keys list should look something like this. (I have multiple Repository Secrets; you will have just 2.)
+![](../../docs/images/pc_keys_list.png)
 
-### 🧱 Stage 2: Create GitHub Actions Workflow
+<br>
+---
 
-Create a GitHub Actions workflow file to deploy your application. Choose the workflow template that matches your app type:
+### 🧱 Stage 3: Create GitHub Actions Workflow
 
-#### For Shiny R Apps
+Next, we need to create a **Github Actions workflow file** to deploy your application via Github. (There are other ways to deploy to Posit Connect, but this is the only easy way to sync it with your individual <u>private</u> **Github Repo**.)
+At the following links are several workflow templates, each designed to match a specific type of app. 
 
-Create `.github/workflows/deploy-shinyr.yml`:
+Choose from:
 
-```yaml
-name: Deploy Shiny R App to Posit Connect
+- For Shiny R Apps, use `.github/workflows/deploy-shinyr.yml`.
+- For Shiny Python Apps, use `.github/workflows/deploy-shinypy.yml`.
+- For R-based Plumber APIs, use `github/workflows/deploy-plumber.yml`.
+- For Python-based FastAPI apps, use `.github/workflows/deploy-fastapi.yml`.
 
-on:
-  push:
-    branches: [main]
-    paths:
-      - '04_deployment/positconnect/shinyr/**'
-      - '.github/workflows/deploy-shinyr.yml'
-  workflow_dispatch:
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up R
-        uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: '4.5.2'
-          use-public-rspm: true
-
-      - name: Publish to Posit Connect
-        uses: rstudio/actions/connect-publish@main
-        with:
-          url: ${{ secrets.CONNECT_SERVER }}
-          api-key: ${{ secrets.CONNECT_API_KEY }}
-          access-type: acl
-          dir: 04_deployment/positconnect/shinyr
-          force: false
-```
-
-#### For Shiny Python Apps
-
-Create `.github/workflows/deploy-shinypy.yml`:
-
-```yaml
-name: Deploy Shiny Python App to Posit Connect
-
-on:
-  push:
-    branches: [main]
-    paths:
-      - '04_deployment/positconnect/shinypy/**'
-      - '.github/workflows/deploy-shinypy.yml'
-  workflow_dispatch:
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
-
-      - name: Publish to Posit Connect
-        uses: rstudio/actions/connect-publish@main
-        with:
-          url: ${{ secrets.CONNECT_SERVER }}
-          api-key: ${{ secrets.CONNECT_API_KEY }}
-          access-type: acl
-          dir: 04_deployment/positconnect/shinypy
-          force: false
-```
-
-#### For Plumber API
-
-Create `.github/workflows/deploy-plumber.yml`:
-
-```yaml
-name: Deploy Plumber API to Posit Connect
-
-on:
-  push:
-    branches: [main]
-    paths:
-      - '04_deployment/positconnect/plumber/**'
-      - '.github/workflows/deploy-plumber.yml'
-  workflow_dispatch:
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up R
-        uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: '4.5.2'
-          use-public-rspm: true
-
-      - name: Publish to Posit Connect
-        uses: rstudio/actions/connect-publish@main
-        with:
-          url: ${{ secrets.CONNECT_SERVER }}
-          api-key: ${{ secrets.CONNECT_API_KEY }}
-          access-type: acl
-          dir: 04_deployment/positconnect/plumber
-          force: false
-```
-
-#### For FastAPI
-
-Create `.github/workflows/deploy-fastapi.yml`:
-
-```yaml
-name: Deploy FastAPI to Posit Connect
-
-on:
-  push:
-    branches: [main]
-    paths:
-      - '04_deployment/positconnect/fastapi/**'
-      - '.github/workflows/deploy-fastapi.yml'
-  workflow_dispatch:
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
-
-      - name: Publish to Posit Connect
-        uses: rstudio/actions/connect-publish@main
-        with:
-          url: ${{ secrets.CONNECT_SERVER }}
-          api-key: ${{ secrets.CONNECT_API_KEY }}
-          access-type: acl
-          dir: 04_deployment/positconnect/fastapi
-          force: false
-```
-
-- [ ] Create the appropriate workflow file for your app type in `.github/workflows/` directory
-- [ ] Adjust the `paths` section to match your repository structure if needed
+- [ ] Please select the appropriate template, copy it, and put it in a file at this path in  your repo: `.github/workflows/<NAME_OF_YOUR_FILE>.yml`. 
+- Note: It **must** go in the `.github/workflows` folder; this is a reserved name for Github actions.
+- [ ] Adjust the `paths` section to match your repository structure.
 - [ ] Commit and push the workflow file to your repository
+
+<br>
+---
 
 ### 🧱 Stage 3: Test Deployment
 

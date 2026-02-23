@@ -14,9 +14,9 @@
 
 ## 👥 User Management
 
-Students are added to our **Posit Connect** server at `connect.systems-apps.com` by their **netid** (Cornell network ID). Here's how it works:
+Students are added to the **Posit Connect** server for our Cornell Systems Engineering Program at `connect.systems-apps.com` by their **netid** (Cornell network ID). Here's how it works:
 
-1. **Invitation**: You receive an email invitation to join the server
+1. **Invitation**: You receive an email invitation to join the server. (**CHECK YOUR SPAM FOLDER!**)
 2. **Password Setup**: You'll be prompted to set your password when you first access the server
 3. **Roles**: You can be assigned one of two roles:
    - **Viewer**: Can view and interact with deployed applications
