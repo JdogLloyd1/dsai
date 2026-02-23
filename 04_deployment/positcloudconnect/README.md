@@ -22,7 +22,7 @@ Complete these activities in order:
 
 ## Readings
 
-- None.
+- See Example Apps in `shinypy` and `shinyr` folders!
 
 ---
 
