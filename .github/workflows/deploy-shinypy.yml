@@ -28,3 +28,4 @@ jobs:
           access-type: acl
           dir: 04_deployment/positconnect/shinypy
           force: false
+
