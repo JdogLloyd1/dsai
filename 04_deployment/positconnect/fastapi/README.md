@@ -38,4 +38,4 @@ Once running, visit:
 
 ## Deployment to Posit Connect
 
-This app can be deployed to Posit Connect using GitHub Actions. See [ACTIVITY: Deploy to Posit Connect via GitHub Actions](../ACTIVITY_posit_connect_github_actions.md) for instructions.
+This app can be deployed to Posit Connect **using the rsconnect-python package**. See [ACTIVITY: Deploy to Posit Connect via GitHub Actions](../ACTIVITY_posit_connect_github_actions.md) for instructions.

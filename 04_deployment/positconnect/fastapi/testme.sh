@@ -1,3 +1,4 @@
 #!/bin/bash
 cd 04_deployment/positconnect/fastapi
-python -m uvicorn app:app --host 0.0.0.0 --port 8000
+# Use fastapi_app directly for local uvicorn testing (ASGI)
+python -m uvicorn app:fastapi_app --host 0.0.0.0 --port 8000

@@ -1,36 +1,25 @@
-"""
-Minimal FastAPI application for Posit Connect deployment.
-"""
+# -*- coding: utf-8 -*-
 
+import json
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
-
-app = FastAPI(
-    title="FastAPI Example API",
-    description="FastAPI example description.",
-    version="1.0.0"
-)
+from pydantic import BaseModel
+from typing import List
 
 
-@app.get("/")
-async def root():
-    """Root endpoint."""
-    return {"message": "FastAPI is running!", "docs": "/docs"}
+class Greeting(BaseModel):
+    lang: str
+    text: str
 
 
-@app.get("/echo")
-async def echo(msg: str = ""):
-    """Echo back the input."""
-    return {"msg": f"The message is: '{msg}'"}
+app = FastAPI()
+db = json.load(open("greetings.json"))
 
 
-@app.post("/sum")
-async def sum_numbers(a: float, b: float):
-    """Return the sum of two numbers."""
-    return {"result": a + b}
+@app.get("/greetings", response_model=List[Greeting])
+async def greetings():
+    return [Greeting(lang=lang, text=text) for lang, text in sorted(db.items())]
 
 
-@app.get("/__docs__/")
-async def docs_redirect():
-    """Redirect to FastAPI interactive documentation."""
-    return RedirectResponse(url="/docs")
+@app.get("/greetings/{lang}", response_model=Greeting)
+async def greeting(lang: str = "en"):
+    return Greeting(lang=lang, text=db.get(lang))

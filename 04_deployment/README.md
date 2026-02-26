@@ -25,7 +25,7 @@ Complete these activities in order:
 1. [READ: DigitalOcean](digitalocean/READ_digitalocean.md)
 2. [ACTIVITY: Setup DigitalOcean Account](digitalocean/ACTIVITY_digitalocean_signup.md)
 3. [ACTIVITY: Create App Platform with DigitalOcean](digitalocean/ACTIVITY_digitalocean_create_app_platform.md)
-4. [ACTIVITY: Deploy to Posit Cloud Connect](positcloudconnect/ACTIVITY_posit_cloud_connect.md)
+4. [ACTIVITY: Deploy to Posit Cloud Connect](positconnectcloud/ACTIVITY_posit_connect_cloud.md)
 5. [READ: Posit Connect - A private deployment server](positconnect/READ_posit_connect.md)
 6. [ACTIVITY: Deploy to Posit Connect via GitHub Actions](positconnect/ACTIVITY_posit_connect_github_actions.md)
 
@@ -43,7 +43,7 @@ Complete these activities in order:
 Explore deployment options for each platform:
 
 - **[`digitalocean/`](digitalocean/)** — DigitalOcean App Platform deployment guides and examples
-- **[`positcloudconnect/`](positcloudconnect/)** — Posit Cloud Connect deployment resources
+- **[`positconnectcloud/`](positconnectcloud/)** — Posit Connect Cloud deployment resources
 - **[`positconnect/`](positconnect/)** — Posit Connect deployment via GitHub Actions
 
 ---

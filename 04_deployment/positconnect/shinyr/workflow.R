@@ -2,8 +2,6 @@
 
 # An optional script that you use to linearly test your functions before you put them into a ShinyApp dashboard in app.R
 
-# rsconnect::writeManifest(appDir = "04_deployment/positconnect/shinyr", appMode = "shiny")
-
 # Start by creating a list object for `input` and `output`
 # then fill them with test input and test output data.
 
