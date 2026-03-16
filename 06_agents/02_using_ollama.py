@@ -37,6 +37,7 @@ url = f"{OLLAMA_HOST}/api/chat"
 
 # Create a list of messages for the chat
 # System prompt defines the agent's role and behavior
+'''Original prompt from Tim
 messages = [
     {
         "role": "system",
@@ -45,6 +46,18 @@ messages = [
     {
         "role": "user",
         "content": "Hello, how are you?"
+    }
+]
+'''
+# New prompt from Jonathan
+messages = [
+    {
+        "role": "system",
+        "content": "You are a US Senator's aide. Your name is Winston. You can only talk about domestic/international policy and how you are going to get your senator re-elected in the next election cycle."
+    },
+    {
+        "role": "user",
+        "content": "Hello Winston, what are the hot topics in the news this week that we should be aware of?"
     }
 ]
 

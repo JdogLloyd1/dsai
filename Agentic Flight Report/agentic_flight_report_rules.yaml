@@ -1,0 +1,138 @@
+rules:
+  reporting:
+  - id: "airspace-reporting-standards"
+    name: "Agentic Flight Report – Airspace & Network Reporting Standards"
+    description: "Ensures US airspace status and network summaries are structured, readable, and free of low-level tooling noise."
+    applies_when: "Always"
+    guidance: |
+      # Airspace & Network Reporting Guidelines
+
+      These rules apply to any agent generating the US airspace + network-level summary
+      and to any downstream agent that references that summary.
+
+      ## 1. Output Structure
+      - Always produce a clearly sectioned, plain-text or markdown report.
+      - Use the following section headings in this order when generating the combined airspace + network summary:
+        - "NAS Status (FAA)"
+        - "Current Operational Weather (AWC)"
+        - "System-Level Delays and Cancellations (FlightAware)"
+        - "Other Operational Factors (NOTAMs, TFRs, airline/airport issues)"
+        - "Network-Level Summary by Region and Hub"
+      - Within the "Network-Level Summary by Region and Hub" section:
+        - Start with a 2–3 sentence executive overview of overall network health (e.g., mostly on time, moderately disrupted, severely disrupted).
+        - Provide a short, bullet-style breakdown by major region (e.g., Northeast, Southeast, Midwest, West Coast).
+        - List the top 3–5 most impacted hubs with 1–2 sentence explanations each.
+        - Note any clear trends through the day (improving, stable, worsening) only when supported by the data.
+
+      ## 2. Handling Web Tool Outputs and Errors
+      - Do NOT include raw tool or HTTP error messages (e.g., "Error fetching URL ...", stack traces, or connection errors) in the final user-facing report.
+      - If a `url_query` or `web_search_general` call fails or returns no readable content:
+        - Internally treat this as "no specific data available from this source".
+        - In the report, at most summarize this as a neutral statement like:
+          - "No current advisory information could be retrieved from this source."
+        - Never include the exact error text, URL query parameters, or low-level network details.
+      - Prefer aggregate or well-known URLs (e.g., FAA NAS status, AWC dashboards, FlightAware cancellations) over deep, hand-constructed URLs.
+      - When searching for flight-specific information, use generic flight status search pages or airline status portals discovered via `web_search_general` rather than guessing deep links.
+
+      ## 3. Use of Sources
+      - **Primary sources** (high priority):
+        - FAA NAS Status (`https://nasstatus.faa.gov/`)
+        - Aviation Weather Center Terminal Weather Dashboard (`https://aviationweather.gov/impactboard/`)
+        - FlightAware cancellations and delay statistics (`https://www.flightaware.com/live/cancelled`)
+      - **Secondary sources** (when needed to clarify the picture):
+        - FAA NOTAM/TFR pages for large restrictions or special events.
+        - Airline or airport bulletins and travel waivers on major carrier or hub airport sites.
+        - Generic flight status search pages (via `web_search_general`) to understand typical disruptions on a route.
+      - Clearly distinguish in the text between:
+        - Official sources (FAA, NWS/AWC, SPC, airline/airport sites).
+        - Third-party or aggregated sources (e.g., FlightAware, media, blogs).
+
+      ## 4. Tone, Clarity, and Scope
+      - Write for an informed traveler or operations planner:
+        - Avoid jargon where possible; briefly explain any necessary aviation terms.
+        - Keep sentences short and direct.
+      - Do not speculate beyond what sources support:
+        - Avoid guessing exact delay minutes or cancellations for specific flights.
+        - Frame statements in terms of likelihoods and scenarios ("likely", "possible", "elevated risk") rather than guarantees.
+      - Keep each section concise:
+        - Aim for 3–8 sentences per section, or a short paragraph followed by a few bullets.
+        - Focus on the most impactful information; do not list every minor issue.
+
+      ## 5. Personal Flight Interpretation (Downstream Agent)
+      - When creating a personalized flight report based on the network summary:
+        - Reuse the network-level conclusions rather than re-running a full web scan.
+        - Focus on:
+          - How conditions at origin/destination (and any connections) affect delay/cancellation risk.
+          - Whether connection time looks comfortable or tight under today’s conditions.
+        - If additional web tools are used (airline waivers, generic flight status pages):
+          - Summarize their content in plain language.
+          - Apply the same rule of not surfacing raw errors or internal tool details.
+      - Always end with a brief, 2–4 bullet list of practical recommendations (e.g., arrive early, monitor for waivers, consider earlier flights, prepare for possible overnight).
+
+  personal_flight:
+  - id: "personal-flight-reporting-standards"
+    name: "Agentic Flight Report – Personal Flight Reporting Standards"
+    description: "Ensures personalized flight reports are consistent, traveler-focused, and clearly grounded in the network summary."
+    applies_when: "Always"
+    guidance: |
+      # Personal Flight Reporting Guidelines
+
+      These rules apply to any agent that interprets the US airspace + network-level
+      summary for a specific passenger’s flight (the personal flight agent).
+
+      ## 1. Inputs and Scope
+      - Treat the combined airspace + network summary from Agent 1 as your primary context.
+      - Use the user flight details (carrier, flight number, date, origin, destination) to focus your analysis.
+      - Do NOT re-run a full airspace scan; only make targeted tool calls (airline advisories, aggregate stats, generic flight status search) when needed.
+
+      ## 2. Output Structure
+      - Organize each personal flight report into the following sections:
+        - "Overview"
+        - "Key Risk Drivers"
+        - "Impact on Your Flight"
+        - "Practical Recommendations"
+        - "Uncertainty and Caveats"
+      - Each section should be short:
+        - 2–4 sentences for "Overview" and "Impact on Your Flight".
+        - 3–5 short bullets for "Key Risk Drivers" and "Practical Recommendations".
+        - 2–3 sentences for "Uncertainty and Caveats".
+
+      ## 3. Use of Tools and Sources
+      - Prefer:
+        - The existing network summary text from Agent 1.
+        - Airline or airport advisories (travel waivers, alerts) via `url_query` on known pages.
+        - Aggregate FlightAware stats at `https://www.flightaware.com/live/cancelled` when you need a sense of overall disruption.
+        - Generic flight status search pages discovered via `web_search_general` when necessary.
+      - Avoid:
+        - Guessing deep, per-flight URLs for third-party sites.
+        - Overusing web tools; only call them when they are likely to change your conclusions.
+      - As with airspace reporting:
+        - Never surface raw tool or HTTP error messages in the user-facing report.
+        - If a tool call fails or returns no readable content, at most state that "no specific additional information was available" and proceed using existing context.
+
+      ## 4. Explaining Risk
+      - Express delay/cancellation risk qualitatively:
+        - Use terms like "low", "moderate", or "high" risk rather than precise probabilities.
+        - Tie risk levels directly to combinations of factors (e.g., storms at origin, chronic hub delays, high cancellations at key airports).
+      - For connecting itineraries:
+        - Explicitly comment on connection time (e.g., "comfortable", "tight but plausible", "very tight under today’s conditions").
+        - Mention where delays are most likely to accumulate (origin vs. hub vs. destination).
+
+      ## 5. Practical Recommendations
+      - "Practical Recommendations" should always be concrete and actionable, for example:
+        - "Arrive at the airport 30–60 minutes earlier than usual."
+        - "Monitor your airline’s app or website for travel waivers on this route."
+        - "If possible, consider an earlier departure to protect your connection."
+        - "Pack a small overnight kit in case you need to stay near the hub."
+      - Avoid giving legal, financial, or medical advice; stay focused on travel logistics and expectations.
+
+      ## 6. Uncertainty and Communication Style
+      - Be transparent about uncertainty:
+        - Clearly distinguish between what is well-supported (e.g., widespread storms) and what is speculative (e.g., exact departure time).
+        - Use language like "likely", "possible", or "elevated risk" instead of certainties.
+      - Tone:
+        - Calm, informative, and non-alarmist.
+        - Acknowledge concerns but avoid exaggeration.
+        - Aim to leave the traveler feeling informed and prepared, not overwhelmed.
+
+

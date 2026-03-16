@@ -30,7 +30,7 @@ from functions import agent_run, get_shortages, df_as_text
 # 1. CONFIGURATION ###################################
 
 # Select model of interest
-MODEL = "smollm2:135m"
+MODEL = "smollm2:1.7b"
 
 # We will use the FDA Drug Shortages API to get data on drug shortages.
 # https://open.fda.gov/apis/drug/drugshortages/
@@ -48,7 +48,7 @@ categories = [
 # 2. WORKFLOW EXECUTION ###################################
 
 # Start with an input type of medication to search
-input_category = {"category": "Psychiatry"}
+input_category = {"category": "Oncology"}
 
 # Task 1 - Function -------------------------
 # Get data on drug shortages for the category of interest
@@ -77,6 +77,7 @@ stat = data.groupby("generic_name").apply(lambda x: x.loc[x["update_date"].idxma
 
 # Convert the data to a text string
 task2 = df_as_text(stat)
+print("task1 complete")
 
 # Task 2 - Analyst Agent -------------------------
 # This agent analyzes the data and returns a markdown table
@@ -84,16 +85,19 @@ role2 = "I analyze medicine shortage data provided by the user in a table, and r
 result2 = agent_run(role=role2, task=task2, model=MODEL, output="text")
 
 result2
+print("task2 complete")
+print(result2)
 
-# Task 3 - Press Release Agent -------------------------
-# This agent takes the analysis and writes a press release
-role3 = "I write a 1-page press release on the currently ongoing shortages, \
-using the analysis provided by the user."
+# Task 3 - Shortages Report Agent -------------------------
+# This agent takes the analysis and writes a report
+role3 = "I provide targeted commentary (2 paragraphs maximum) on the currently ongoing medicine shortages, \
+    ranking the shortages by severity and impact to patients, \
+    and providing a brief summary of the most severe shortages."
 result3 = agent_run(role=role3, task=result2, model=MODEL, output="text")
 result3
 
 # 3. VIEW RESULTS ###################################
 
 # View press release
-print("📰 Press Release:")
+print("📰 Shortages Report:")
 print(result3)

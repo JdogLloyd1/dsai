@@ -46,6 +46,8 @@ rules:
       - Include relevant dates and timeframes
       - Mention the data source (FDA Drug Shortages API)
       - Focus on impact and implications for stakeholders
+      - Include a disclaimer that the data is provided by the FDA and is subject to change.
+      - Include a quote about the importance of the data and the impact it has on the public.
 
       **3. Tone & Style:**
       - Use professional, objective language

@@ -25,7 +25,7 @@ from functions import agent_run, get_shortages, df_as_text
 # 1. CONFIGURATION ###################################
 
 # Select model of interest
-MODEL = "smollm2:135m"
+MODEL = "smollm2:1.7b"
 
 # 2. LOAD RULES FROM YAML ###################################
 
@@ -36,7 +36,7 @@ MODEL = "smollm2:135m"
 # Learn more about standard AI rules formatting here: https://aicodingrules.org/
 
 # Load in rules
-with open("04_rules.yaml", "r") as f:
+with open("06_agents/04_rules.yaml", "r") as f:
     rules = yaml.safe_load(f)
 
 # Extract rules as dictionaries for easy access
