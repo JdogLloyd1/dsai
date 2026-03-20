@@ -14,19 +14,22 @@ import pandas as pd  # for data manipulation
 import requests  # for HTTP requests
 import json      # for working with JSON
 import os        # for file path operations
+import sys       # for local import path
 import runpy     # for executing another Python script
 
 # 0.2 Working Directory #################################
 
 # Get the directory of the current script
-script_dir = os.path.dirname(os.path.abspath(__name__))
+script_dir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(script_dir)
+if script_dir not in sys.path:
+    sys.path.insert(0, script_dir)
 
 ## 0.3 Start Ollama Server (source 01_ollama.py) #################################
 
 # Execute 01_ollama.py as if we were sourcing it in R.
 # This will configure environment variables and start `ollama serve` in the background.
-ollama_script_path = os.path.join(os.getcwd(), "01_ollama.py")
+ollama_script_path = os.path.join(script_dir, "01_ollama.py")
 _ = runpy.run_path(ollama_script_path)
 
 
@@ -41,7 +44,7 @@ from functions import agent_run
 MODEL = "smollm2:1.7b"  # use this small model
 PORT = 11434  # use this default port
 OLLAMA_HOST = f"http://localhost:{PORT}"  # use this default host
-DB_PATH = "data/papers.db"  # path to the SQLite database
+DB_PATH = os.path.join(script_dir, "data", "papers.db")  # path to the SQLite database
 
 # 1. DATABASE CONNECTION ###################################
 
@@ -126,7 +129,7 @@ result2 = agent_run(
 )
 
 # View result
-print("📝 Generated Summary:")
+print("Generated Summary:")
 print(result2)
 print()
 
@@ -153,7 +156,7 @@ response_data = response.json()
 result2b = response_data["message"]["content"]
 
 # View result
-print("📝 Alternative Approach Result:")
+print("Alternative Approach Result:")
 print(result2b)
 
 # 6. CLEANUP ###################################

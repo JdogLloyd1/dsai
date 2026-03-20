@@ -13,18 +13,21 @@ import os        # for file path operations
 import runpy     # for executing another Python script
 import requests  # for HTTP requests
 import json      # for working with JSON
+import sys       # for Python import path
 
 ## 0.2 Working Directory #################################
 
 # Get the directory of the current script
-script_dir = os.path.dirname(os.path.abspath(__name__))
+script_dir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(script_dir)
+if script_dir not in sys.path:
+    sys.path.insert(0, script_dir)
 
 ## 0.3 Start Ollama Server (source 01_ollama.py) #################################
 
 # Execute 01_ollama.py as if we were sourcing it in R.
 # This will configure environment variables and start `ollama serve` in the background.
-ollama_script_path = os.path.join(os.getcwd(), "01_ollama.py")
+ollama_script_path = os.path.join(script_dir, "01_ollama.py")
 _ = runpy.run_path(ollama_script_path)
 
 
@@ -39,7 +42,7 @@ from functions import agent_run
 MODEL = "smollm2:1.7b"  # use this small model
 PORT = 11434  # use this default port
 OLLAMA_HOST = f"http://localhost:{PORT}"  # use this default host
-DOCUMENT = "data/sample.txt"  # path to the text document to search
+DOCUMENT = os.path.join(script_dir, "data", "sample.txt")  # path to the text document to search
 
 # 1. SEARCH FUNCTION ###################################
 
@@ -115,7 +118,7 @@ result2 = agent_run(
 )
 
 # View result
-print("📝 Generated Explanation:")
+print("Generated Explanation:")
 print(result2)
 
 # 4. ALTERNATIVE: MANUAL CHAT APPROACH ###################################
@@ -141,5 +144,5 @@ response_data = response.json()
 result2b = response_data["message"]["content"]
 
 # View result
-print("📝 Alternative Approach Result:")
+print("Alternative Approach Result:")
 print(result2b)
