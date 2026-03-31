@@ -35,6 +35,11 @@ def add_two_numbers(x, y):
     return x + y
 
 # Define another function to be used as a tool
+def average_two_numbers(x, y):
+    """Average two numbers."""
+    return (x + y) / 2
+
+# Define another function to be used as a tool
 def get_table(df):
     """
     Convert a pandas DataFrame into a markdown table.
@@ -59,6 +64,29 @@ tool_add_two_numbers = {
     "function": {
         "name": "add_two_numbers",
         "description": "Add two numbers",
+        "parameters": {
+            "type": "object",
+            "required": ["x", "y"],
+            "properties": {
+                "x": {
+                    "type": "number",
+                    "description": "first number"
+                },
+                "y": {
+                    "type": "number",
+                    "description": "second number"
+                }
+            }
+        }
+    }
+}
+
+# Define the tool metadata for average_two_numbers
+tool_average_two_numbers = {
+    "type": "function",
+    "function": {
+        "name": "average_two_numbers",
+        "description": "Average two numbers",
         "parameters": {
             "type": "object",
             "required": ["x", "y"],
@@ -127,7 +155,28 @@ if isinstance(resp, list) and len(resp) > 0:
 
 # 5. EXAMPLE 3: TOOL CALL #2 ###################################
 
-# Try calling tool #2 (get_table)
+# Try calling tool #2 (average_two_numbers) with the same numbers from tool #1
+first_call_args = resp[0].get("function", {}).get("arguments", {}) if isinstance(resp, list) and len(resp) > 0 else {}
+x_value = first_call_args.get("x", 3)
+y_value = first_call_args.get("y", 5)
+
+messages = [
+    {"role": "user", "content": f"Average {x_value} and {y_value}."}
+]
+
+resp2 = agent(messages=messages, model=MODEL, output="tools", tools=[tool_average_two_numbers])
+print("🔧 Tool Call #2 Result:")
+print(resp2)
+print()
+
+# Access the output from the tool call
+if isinstance(resp2, list) and len(resp2) > 0:
+    print(f"Tool output: {resp2[0].get('output', 'No output')}")
+    print()
+
+# 6. EXAMPLE 4: TOOL CALL #3 ###################################
+
+# Try calling tool #3 (get_table)
 # First, create a simple DataFrame with the result from tool #1
 result_value = resp[0].get("output", 0) if isinstance(resp, list) else 0
 df = pd.DataFrame({"x": [result_value]})
@@ -136,9 +185,9 @@ messages = [
     {"role": "user", "content": f"Place the numeric value {result_value} into a 1x1 data.frame with column name 'x' and format as a markdown table."}
 ]
 
-resp2 = agent(messages=messages, model=MODEL, output="tools", tools=[tool_get_table])
-print("🔧 Tool Call #2 Result:")
-print(resp2)
+resp3 = agent(messages=messages, model=MODEL, output="tools", tools=[tool_get_table])
+print("🔧 Tool Call #3 Result:")
+print(resp3)
 print()
 
 # Compare against manual approach

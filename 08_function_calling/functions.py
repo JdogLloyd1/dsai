@@ -12,6 +12,8 @@
 import requests  # for HTTP requests
 import json      # for working with JSON
 import pandas as pd  # for data manipulation
+import sys       # for looking up caller-defined tool functions
+import ast       # for safely parsing Python-like dict strings
 
 # If you haven't already, install these packages...
 # pip install requests pandas
@@ -83,13 +85,30 @@ def agent(messages, model=DEFAULT_MODEL, output="text", tools=None, all=False):
                 # Execute the tool function
                 # Note: Tool functions must be defined in the global scope
                 func_name = tool_call["function"]["name"]
-                func_args = json.loads(tool_call["function"]["arguments"])
+                raw_args = tool_call["function"].get("arguments", {})
+                # Ollama may return tool arguments either as a JSON string or as an already-parsed dict.
+                # Normalize both formats so do.call-style execution is consistent.
+                func_args = json.loads(raw_args) if isinstance(raw_args, str) else raw_args
+                # Coerce common tabular payloads for tools that expect a DataFrame argument.
+                # This helps when a model returns df as a dict/list/JSON-string instead of a DataFrame object.
+                if isinstance(func_args, dict) and "df" in func_args and not isinstance(func_args["df"], pd.DataFrame):
+                    df_value = func_args["df"]
+                    if isinstance(df_value, str):
+                        try:
+                            parsed_df = json.loads(df_value)
+                        except json.JSONDecodeError:
+                            parsed_df = ast.literal_eval(df_value)
+                        func_args["df"] = pd.DataFrame(parsed_df)
+                    elif isinstance(df_value, (dict, list)):
+                        func_args["df"] = pd.DataFrame(df_value)
                 
-                # Get the function from globals and execute it
-                func = globals().get(func_name)
+                # Get the function from the caller script first, then fall back to this module.
+                # This matches usage in 03_agents_with_function_calling.py where tools are defined there.
+                caller_globals = vars(sys.modules.get("__main__")) if sys.modules.get("__main__") else {}
+                func = caller_globals.get(func_name) or globals().get(func_name)
                 if func:
-                    output = func(**func_args)
-                    tool_call["output"] = output
+                    tool_output = func(**func_args)
+                    tool_call["output"] = tool_output
         
         if all:
             return result

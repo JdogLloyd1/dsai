@@ -42,7 +42,29 @@ TOOLS = [
             },
             "required": ["dataset_name"],
         },
-    }
+    },
+    {
+        "name": "linear_regression",
+        "description": "Fits a simple linear regression y ~ a + b*x between two numeric columns.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "dataset_name": {
+                    "type": "string",
+                    "description": "Dataset to use. Options: 'mtcars' or 'iris'.",
+                },
+                "x_variable": {
+                    "type": "string",
+                    "description": "Numeric column name to use as the predictor (x).",
+                },
+                "y_variable": {
+                    "type": "string",
+                    "description": "Numeric column name to use as the response (y).",
+                },
+            },
+            "required": ["dataset_name", "x_variable", "y_variable"],
+        },
+    },
 ]
 
 # ── Tool logic (same datasets as R: mtcars, iris via Rdatasets CSV) ──
@@ -65,6 +87,58 @@ def run_tool(name: str, args: dict) -> str:
         summary.index.name = "variable"
         summary.columns = ["mean", "sd", "min", "max"]
         return summary.reset_index().to_json(orient="records", indent=2)
+
+    if name == "linear_regression":
+        nm = args.get("dataset_name")
+        if nm not in DATASETS:
+            raise ValueError(f"Unknown dataset: '{nm}' — choose 'mtcars' or 'iris'")
+
+        x_col = args.get("x_variable")
+        y_col = args.get("y_variable")
+        if not x_col or not y_col:
+            raise ValueError("Missing required inputs: 'x_variable' and 'y_variable'")
+
+        df = DATASETS[nm].select_dtypes(include="number")
+        if x_col not in df.columns:
+            raise ValueError(f"Unknown x_variable '{x_col}' for dataset '{nm}'")
+        if y_col not in df.columns:
+            raise ValueError(f"Unknown y_variable '{y_col}' for dataset '{nm}'")
+
+        xy = df[[x_col, y_col]].dropna()
+        n = len(xy)
+        if n < 2:
+            raise ValueError("Need at least 2 non-missing paired observations to fit regression")
+
+        x = xy[x_col]
+        y = xy[y_col]
+
+        # OLS for a simple regression y ~ a + b*x using covariance/variance identities.
+        x_var = x.var()
+        if x_var == 0:
+            raise ValueError("x_variable has zero variance; regression slope is undefined")
+
+        slope = x.cov(y) / x_var
+        intercept = y.mean() - slope * x.mean()
+
+        y_pred = intercept + slope * x
+        residuals = y - y_pred
+
+        sse = (residuals**2).sum()
+        sst = ((y - y.mean()) ** 2).sum()
+        r_squared = None if sst == 0 else 1 - (sse / sst)
+
+        result = {
+            "dataset_name": nm,
+            "x_variable": x_col,
+            "y_variable": y_col,
+            "n": int(n),
+            "slope": round(float(slope), 6),
+            "intercept": round(float(intercept), 6),
+            "r_squared": None if r_squared is None else round(float(r_squared), 6),
+            "x_mean": round(float(x.mean()), 6),
+            "y_mean": round(float(y.mean()), 6),
+        }
+        return json.dumps(result, indent=2)
 
     raise ValueError(f"Unknown tool: {name}")
 
