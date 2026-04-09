@@ -12,8 +12,9 @@
 import requests  # for HTTP requests
 import json      # for working with JSON
 import pandas as pd  # for data manipulation
-import sys       # for looking up caller-defined tool functions
-import ast       # for safely parsing Python-like dict strings
+import sys       # stack frame inspection and caller tool lookup
+import ast       # safely parsing Python-like dict strings
+import time      # simple polling/retry for Ollama availability
 
 # If you haven't already, install these packages...
 # pip install requests pandas
@@ -25,6 +26,30 @@ DEFAULT_MODEL = "smollm2:1.7b"
 PORT = 11434
 OLLAMA_HOST = f"http://localhost:{PORT}"
 CHAT_URL = f"{OLLAMA_HOST}/api/chat"
+REQUEST_TIMEOUT = 300  # seconds; avoid hanging indefinitely on network/model issues
+OLLAMA_TAGS_URL = f"{OLLAMA_HOST}/api/tags"
+
+
+def ensure_ollama_available(max_wait_seconds: int = 15, poll_interval_seconds: float = 0.5) -> None:
+    """
+    Fail fast with a helpful message if Ollama isn't reachable.
+    """
+    deadline = time.time() + max_wait_seconds
+    last_err = None
+    while time.time() < deadline:
+        try:
+            r = requests.get(OLLAMA_TAGS_URL, timeout=5)
+            if r.ok:
+                return
+        except Exception as e:
+            last_err = e
+        time.sleep(poll_interval_seconds)
+
+    raise RuntimeError(
+        "Ollama is not reachable at localhost:11434. "
+        "Start it first with: `python 08_function_calling/01_ollama.py`.\n"
+        f"Last error: {last_err}"
+    )
 
 # 1. AGENT FUNCTION ###################################
 
@@ -54,27 +79,32 @@ def agent(messages, model=DEFAULT_MODEL, output="text", tools=None, all=False):
     
     # If the agent has NO tools, perform a standard chat
     if tools is None:
+        ensure_ollama_available()
         body = {
             "model": model,
             "messages": messages,
-            "stream": False
+            "stream": False,
+            # Token cap makes runtime more predictable for students' machines.
+            "options": {"num_predict": 500},
         }
         
-        response = requests.post(CHAT_URL, json=body)
+        response = requests.post(CHAT_URL, json=body, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         result = response.json()
         
         return result["message"]["content"]
     else:
         # If the agent has tools, perform a tool call
+        ensure_ollama_available()
         body = {
             "model": model,
             "messages": messages,
             "tools": tools,
-            "stream": False
+            "stream": False,
+            "options": {"num_predict": 500},
         }
         
-        response = requests.post(CHAT_URL, json=body)
+        response = requests.post(CHAT_URL, json=body, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         result = response.json()
         
@@ -87,10 +117,8 @@ def agent(messages, model=DEFAULT_MODEL, output="text", tools=None, all=False):
                 func_name = tool_call["function"]["name"]
                 raw_args = tool_call["function"].get("arguments", {})
                 # Ollama may return tool arguments either as a JSON string or as an already-parsed dict.
-                # Normalize both formats so do.call-style execution is consistent.
                 func_args = json.loads(raw_args) if isinstance(raw_args, str) else raw_args
-                # Coerce common tabular payloads for tools that expect a DataFrame argument.
-                # This helps when a model returns df as a dict/list/JSON-string instead of a DataFrame object.
+                # Coerce tabular payloads for tools that expect a DataFrame (dict/list/JSON string).
                 if isinstance(func_args, dict) and "df" in func_args and not isinstance(func_args["df"], pd.DataFrame):
                     df_value = func_args["df"]
                     if isinstance(df_value, str):
@@ -101,11 +129,19 @@ def agent(messages, model=DEFAULT_MODEL, output="text", tools=None, all=False):
                         func_args["df"] = pd.DataFrame(parsed_df)
                     elif isinstance(df_value, (dict, list)):
                         func_args["df"] = pd.DataFrame(df_value)
-                
-                # Get the function from the caller script first, then fall back to this module.
-                # This matches usage in 03_agents_with_function_calling.py where tools are defined there.
-                caller_globals = vars(sys.modules.get("__main__")) if sys.modules.get("__main__") else {}
-                func = caller_globals.get(func_name) or globals().get(func_name)
+
+                func = globals().get(func_name)
+                if func is None:
+                    for depth in range(1, 6):
+                        try:
+                            frame = sys._getframe(depth)
+                            func = frame.f_globals.get(func_name)
+                            if func is not None:
+                                break
+                        except ValueError:
+                            break
+                if func is None and sys.modules.get("__main__"):
+                    func = vars(sys.modules["__main__"]).get(func_name)
                 if func:
                     tool_output = func(**func_args)
                     tool_call["output"] = tool_output
