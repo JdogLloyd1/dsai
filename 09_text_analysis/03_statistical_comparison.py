@@ -109,7 +109,7 @@ print(t_test_result)
 print()
 
 # Extract p-value
-p_value = t_test_result['p-val'].values[0]
+p_value = t_test_result['p_val'].values[0]
 
 # Interpret the result
 print("💡 Interpretation:")
@@ -145,7 +145,7 @@ print()
 
 # Extract F-statistic and p-value
 f_statistic = anova_result['F'].values[0]
-p_value = anova_result['p-unc'].values[0]
+p_value = anova_result['p_unc'].values[0]
 
 print(f"📊 F-statistic: {f_statistic:.4f}")
 print(f"📊 p-value: {p_value:.4f}\n")
