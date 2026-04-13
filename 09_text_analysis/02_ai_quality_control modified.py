@@ -33,6 +33,16 @@ PORT = 11434
 _base = os.getenv("OLLAMA_HOST", f"http://localhost:{PORT}").rstrip("/")
 OLLAMA_HOST = _base
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2:latest")  # Use a model that supports JSON output
+# Lower = more deterministic QC scores (Ollama /api/chat and /api/generate "options")
+OLLAMA_TEMPERATURE = float(os.getenv("OLLAMA_TEMPERATURE", "0.1"))
+OLLAMA_TEMPERATURE = max(0.0, min(OLLAMA_TEMPERATURE, 2.0))
+# Fixed seed improves repeatability with the same model + prompt (set OLLAMA_SEED in .env to override)
+OLLAMA_SEED = int(os.getenv("OLLAMA_SEED", "42"))
+
+
+def _ollama_options():
+    """Options passed to Ollama generate/chat (temperature + seed)."""
+    return {"temperature": OLLAMA_TEMPERATURE, "seed": OLLAMA_SEED}
 
 # OpenAI configuration
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -40,17 +50,13 @@ OPENAI_MODEL = "gpt-4o-mini"  # Low-cost model
 
 ## 0.3 Load Sample Data #################################
 
-# Load sample report text for quality control
-with open("09_text_analysis/data/sample_reports.txt", "r", encoding="utf-8") as f:
-    sample_text = f.read()
 
-# Split text into individual reports
-reports = [r.strip() for r in sample_text.split("\n\n") if r.strip()]
-report = reports[0]
-
-# Load source data (if available) for accuracy checking
-# In this example, we'll use a simple data structure
-source_data = """White County, IL | 2015 | PM10 | Time Driven | hours
+def load_sample_data():
+    """Load sample reports and fixed source data used for accuracy checks."""
+    with open("09_text_analysis/data/sample_reports.txt", "r", encoding="utf-8") as f:
+        sample_text = f.read()
+    reports = [r.strip() for r in sample_text.split("\n\n") if r.strip()]
+    source_data = """White County, IL | 2015 | PM10 | Time Driven | hours
 |type        |label_value |label_percent |
 |:-----------|:-----------|:-------------|
 |Light Truck |2.7 M       |51.8%         |
@@ -58,11 +64,8 @@ source_data = """White County, IL | 2015 | PM10 | Time Driven | hours
 |Combo Truck |381.3 k     |7.3%          |
 |Heavy Truck |220.7 k     |4.2%          |
 |Bus         |30.6 k      |0.6%          |"""
+    return reports, source_data
 
-print("📝 Report for Quality Control:")
-print("---")
-print(report)
-print("---\n")
 
 # 1. AI Quality Control Function #################################
 
@@ -71,49 +74,81 @@ print("---\n")
 # Create a comprehensive quality control prompt based on samplevalidation.tex
 # This prompt asks the AI to evaluate text on multiple criteria
 def create_quality_control_prompt(report_text, source_data=None):
-    # Base instructions for quality control
-    instructions = "You are a quality control validator for AI-generated reports. Evaluate the following report text on multiple criteria and return your assessment as valid JSON."
-    
-    # Add source data if provided for accuracy checking
-    data_context = ""
+    # Tight role + output contract reduces hedging and invalid JSON (e.g. copying "true/false").
+    instructions = (
+        "You are a strict quality-control validator for short data reports. "
+        "Score conservatively: prefer lower scores when uncertain. "
+        "Respond with ONE JSON object only—no markdown fences, no text before or after the JSON."
+    )
+
     if source_data is not None:
-        data_context = f"\n\nSource Data:\n{source_data}\n"
-    
-    # Quality control criteria (from samplevalidation.tex)
-    criteria = """
-  
-Quality Control Criteria:
+        data_context = (
+            "\n\n--- SOURCE DATA (ground truth for factual checks) ---\n"
+            f"{source_data.strip()}\n"
+            "---\n"
+            "Treat this as the only authority for checkable facts (geography, year, pollutant, "
+            "category labels, counts, and percentages). Accept small rounding if clearly the same "
+            "quantity (e.g. 12% vs 12.1%).\n"
+        )
+        accuracy_block = """
+**accurate** (boolean): **Data-only gate.** true if every checkable claim in the report matches the Source Data (or sensible rounding of the same quantity). false only if something factual is wrong: a contradicting number, wrong label/category, wrong geography/year/pollutant, a bad combined total, or an invented figure.
+  - Do **not** set false for writing quality, tone, vagueness, or “could be clearer”—use **clarity**, **formality**, **succinctness**, and the **accuracy** Likert for that.
+  - If all facts in the report match the Source Data, **accurate must be true**, even if you rate **accuracy** below 5 because phrasing is loose.
 
-1. **accurate** (boolean): Verify that no part of the paragraph misinterprets the data supplied. Return TRUE if no misinterpretation. FALSE if any problems.
+**accuracy** (integer 1–5): How well the report reflects the **substance** of the Source Data (values, relationships, groupings). 1 = major factual errors; 3 = facts basically right but some ambiguous or imprecise wording; 5 = fully consistent. Reserve low scores for misread numbers or wrong relationships—not mere style. Before scoring, verify place/year/pollutant; then shares/totals; then combined groups (sums).
+"""
+    else:
+        data_context = ""
+        accuracy_block = """
+**accurate** (boolean): **Internal logic only** (no Source Data). true if the paragraph’s numbers and claims do not contradict each other and arithmetic is possible. false only for internal contradictions or impossible arithmetic—not for informal tone or wordiness.
 
-2. **accuracy** (1-5 Likert scale): Rank the paragraph on a 5-point Likert scale, where 1 = many problems interpreting the Data vs. 5 = no misinterpretation of the Data.
+**accuracy** (integer 1–5): Coherence of numbers and claims within the paragraph. 1 = serious internal inconsistency; 3 = mostly coherent; 5 = self-consistent. Do not mark down for style; use **clarity** / **succinctness** for prose quality.
+"""
 
-3. **formality** (1-5 Likert scale): Rank the paragraph on a 5-point Likert scale, where 1 = casual writing vs. 5 = government report writing.
+    criteria = f"""
+Evaluation workflow: (1) Decide **accurate** using **data facts or internal arithmetic only**—not style. (2) Score **accuracy** (Likert) for substance; then **faithfulness**. (3) Score style dimensions (**formality**, **clarity**, **succinctness**, **relevance**, **neutral_tone**).
 
-4. **faithfulness** (1-5 Likert scale): Rank the paragraph on a 5-point Likert scale, where 1 = makes grandiose claims not supported by the data vs. 5 = makes claims directly related to the data.
+{accuracy_block.strip()}
 
-5. **clarity** (1-5 Likert scale): Rank the paragraph on a 5-point Likert scale, where 1 = confusing writing style vs. 5 = clear and precise.
+**faithfulness** (integer 1–5): 1 = grand claims, causal leaps, or implications not supported by the (available) data; 3 = mild overstatement; 5 = claims stay tightly tied to what the data can support. When Source Data is given, **accuracy** = numeric/factual fit; **faithfulness** = not overstating beyond evidence.
 
-6. **succinctness** (1-5 Likert scale): Rank the paragraph on a 5-point Likert scale, where 1 = unnecessarily wordy vs. 5 = succinct.
+**formality** (integer 1–5): 1 = conversational; 3 = neutral professional; 5 = formal government or technical memo style.
 
-7. **relevance** (1-5 Likert scale): Rank the paragraph on a 5-point Likert scale, where 1 = irrelevant commentary vs. 5 = relevant commentary about the data.
+**clarity** (integer 1–5): 1 = vague or hard to follow; 3 = understandable; 5 = precise and logically ordered.
 
-Return your response as valid JSON in this exact format:
-{
-  "accurate": true/false,
+**succinctness** (integer 1–5): 1 = padded or repetitive; 3 = reasonable; 5 = tight with no needless words.
+
+**relevance** (integer 1–5): How much of the prose is *necessary* to interpret the supplied data vs generic commentary that could apply without these numbers. Score the *whole paragraph*, not just one sentence.
+  - 1–2 = substantial off-topic filler, vague slogans, or generic environmental advice with little tie to the specific breakdown/year/place/pollutant.
+  - 3 = a mix: core sentences follow the data, but noticeable generic policy language or repetition that does not add information from the data.
+  - 4 = almost all content maps to categories, shares, or defensible implications from the data; at most one mildly generic clause.
+  - 5 = every substantive sentence references the dataset’s entities (e.g. year, geography, pollutant, vehicle groups) or a direct implication; no purely generic paragraphs.
+  Do not give 5 if most of the text is boilerplate that would read the same with different numbers removed. (This is separate from **faithfulness**, which is about *truth of claims*; **relevance** is about *whether sentences need this dataset at all*.)
+
+**neutral_tone** (integer 1–5): **Bias and loaded language.** Higher = more appropriate for evidence-based reporting.
+  - 1–2 = sensational, blame-oriented, or politically loaded wording; stereotypes; moralizing beyond what the data supports; “obviously / clearly / crisis” without justification.
+  - 3 = mostly factual but some unnecessary heat or vague finger-pointing.
+  - 4–5 = neutral, policy-appropriate tone; attributes findings to data; avoids undue alarmism or dismissiveness.
+  (Aligns with manual QC flags like hyperbole or belittling phrases—score those here rather than under **accurate**.)
+
+**details** (string, max ~50 words): If **accurate** is false, name the **specific data mismatch** (which figure or label is wrong). If any Likert is ≤2, say why. Do not cite “could be more concise” or style as the reason for **accurate** = false. Otherwise one short sentence on overall quality.
+
+Rules: Likert fields must be integers 1–5 only. "accurate" must be JSON booleans true or false (lowercase). Example shape (replace with your scores):
+
+{{
+  "accurate": true,
   "accuracy": 1-5,
   "formality": 1-5,
   "faithfulness": 1-5,
   "clarity": 1-5,
   "succinctness": 1-5,
   "relevance": 1-5,
-  "details": "0-50 word explanation of your assessment"
-}
+  "neutral_tone": 1-5,
+  "details": "Brief justification, 0-50 words."
+}}
 """
-    
-    # Combine into full prompt
-    full_prompt = f"{instructions}{data_context}\n\nReport Text to Validate:\n{report_text}{criteria}"
-    
+
+    full_prompt = f"{instructions}{data_context}\n\n--- REPORT TEXT ---\n{report_text.strip()}\n\n{criteria}"
     return full_prompt
 
 ## 1.2 Query AI Function #################################
@@ -128,6 +163,7 @@ def query_ai_quality_control(prompt, provider=AI_PROVIDER):
             "messages": [{"role": "user", "content": prompt}],
             "format": "json",
             "stream": False,
+            "options": _ollama_options(),
         }
         response = requests.post(chat_url, json=chat_body, timeout=300)
         if response.status_code == 404:
@@ -137,6 +173,7 @@ def query_ai_quality_control(prompt, provider=AI_PROVIDER):
                 "prompt": prompt,
                 "format": "json",
                 "stream": False,
+                "options": _ollama_options(),
             }
             response = requests.post(gen_url, json=gen_body, timeout=300)
         if not response.ok:
@@ -216,63 +253,28 @@ def parse_quality_control_results(json_response):
         "clarity": [quality_data["clarity"]],
         "succinctness": [quality_data["succinctness"]],
         "relevance": [quality_data["relevance"]],
-        "details": [quality_data["details"]]
+        "neutral_tone": [quality_data["neutral_tone"]],
+        "details": [quality_data["details"]],
     })
     
     return results
 
-# 2. Run Quality Control #################################
-
-## 2.1 Create Quality Control Prompt #################################
-
-quality_prompt = create_quality_control_prompt(report, source_data)
-
-print("🤖 Querying AI for quality control...\n")
-
-## 2.2 Query AI #################################
-
-ai_response = query_ai_quality_control(quality_prompt, provider=AI_PROVIDER)
-
-print("📥 AI Response (raw):")
-print(ai_response)
-print()
-
-## 2.3 Parse and Display Results #################################
-
-quality_results = parse_quality_control_results(ai_response)
-
-print("✅ Quality Control Results:")
-print(quality_results)
-print()
-
-## 2.4 Calculate Overall Score #################################
-
-# Calculate average Likert score (excluding boolean accurate)
-likert_scores = quality_results[["accuracy", "formality", "faithfulness", "clarity", "succinctness", "relevance"]]
-overall_score = likert_scores.mean(axis=1).values[0]
-
-quality_results["overall_score"] = round(overall_score, 2)
-
-print(f"📊 Overall Quality Score (average of Likert scales): {overall_score:.2f} / 5.0")
-print(f"📊 Accuracy Check: {'✅ PASS' if quality_results['accurate'].values[0] else '❌ FAIL'}\n")
 
 # 3. Quality Control Multiple Reports #################################
 
 ## 3.1 Batch Quality Control Function #################################
 
-# Function to check multiple reports
+
 def check_multiple_reports(reports, source_data=None):
     print(f"🔄 Performing quality control on {len(reports)} reports...\n")
-    
+
     all_results = []
-    
+
     for i, report_text in enumerate(reports, 1):
         print(f"Checking report {i} of {len(reports)}...")
-        
-        # Create prompt
+
         prompt = create_quality_control_prompt(report_text, source_data)
-        
-        # Query AI
+
         try:
             response = query_ai_quality_control(prompt, provider=AI_PROVIDER)
             results = parse_quality_control_results(response)
@@ -280,25 +282,76 @@ def check_multiple_reports(reports, source_data=None):
             all_results.append(results)
         except Exception as e:
             print(f"❌ Error checking report {i}: {e}")
-        
-        # Small delay to avoid rate limiting
+
         import time
+
         time.sleep(1)
-    
-    # Combine all results
+
     if all_results:
-        combined_results = pd.concat(all_results, ignore_index=True)
-        return combined_results
-    else:
-        return pd.DataFrame()
+        return pd.concat(all_results, ignore_index=True)
+    return pd.DataFrame()
 
-## 3.2 Run Batch Quality Control (Optional) #################################
 
-# Uncomment to check all reports
-# if len(reports) > 1:
-#     batch_results = check_multiple_reports(reports, source_data)
-#     print("\n📊 Batch Quality Control Results:")
-#     print(batch_results)
+# 2. Run Quality Control (script entry) #################################
 
-print("✅ AI quality control complete!")
-print("💡 Compare these results with manual quality control (01_manual_quality_control.py) to see how AI performs.")
+
+def main():
+    reports, source_data = load_sample_data()
+    report = reports[0]
+
+    print("📝 Report for Quality Control:")
+    print("---")
+    print(report)
+    print("---\n")
+
+    quality_prompt = create_quality_control_prompt(report, source_data)
+
+    print("🤖 Querying AI for quality control...\n")
+
+    ai_response = query_ai_quality_control(quality_prompt, provider=AI_PROVIDER)
+
+    print("📥 AI Response (raw):")
+    print(ai_response)
+    print()
+
+    quality_results = parse_quality_control_results(ai_response)
+
+    print("✅ Quality Control Results:")
+    print(quality_results)
+    print()
+    print("📝 Details (full):")
+    print(quality_results["details"].iloc[0])
+    print()
+
+    likert_scores = quality_results[
+        [
+            "accuracy",
+            "formality",
+            "faithfulness",
+            "clarity",
+            "succinctness",
+            "relevance",
+            "neutral_tone",
+        ]
+    ]
+    overall_score = likert_scores.mean(axis=1).values[0]
+
+    quality_results["overall_score"] = round(overall_score, 2)
+
+    print(f"📊 Overall Quality Score (average of Likert scales): {overall_score:.2f} / 5.0")
+    print(f"📊 Accuracy Check: {'✅ PASS' if quality_results['accurate'].values[0] else '❌ FAIL'}\n")
+
+    # Uncomment to check all reports
+    # if len(reports) > 1:
+    #     batch_results = check_multiple_reports(reports, source_data)
+    #     print("\n📊 Batch Quality Control Results:")
+    #     print(batch_results)
+
+    print("✅ AI quality control complete!")
+    print(
+        "💡 Compare these results with manual quality control (01_manual_quality_control.py) to see how AI performs."
+    )
+
+
+if __name__ == "__main__":
+    main()
