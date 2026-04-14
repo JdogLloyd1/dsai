@@ -1,0 +1,12 @@
+{
+    "https://connect.systems-apps.com": {
+        "server_url": "https://connect.systems-apps.com",
+        "filename": "C:\\Users\\jonyl\\Documents\\GitHub\\dsai\\10_data_management\\agentpy",
+        "app_url": "https://connect.systems-apps.com/content/a2c0d13f-6646-49e7-b22a-eaedaf266d5a/",
+        "app_id": "178",
+        "app_guid": "a2c0d13f-6646-49e7-b22a-eaedaf266d5a",
+        "title": "assignment10agent",
+        "app_mode": "python-fastapi",
+        "app_store_version": 1
+    }
+}

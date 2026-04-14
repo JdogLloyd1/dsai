@@ -22,3 +22,7 @@ node_modules/
 !10_data_management/agentr/logs/.gitkeep
 10_data_management/fixer/.env
 z/
+.venv/
+10_data_management/agentpy/logs/
+10_data_management/agentr/logs/
+10_data_management/fixer/logs/
