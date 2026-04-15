@@ -2,14 +2,14 @@
   "version": 1,
   "locale": "English_United States.1252",
   "metadata": {
-    "appmode": "python-api",
+    "appmode": "python-fastapi",
     "entrypoint": "app.api:app"
   },
   "python": {
-    "version": "3.12.7",
+    "version": "3.12.10",
     "package_manager": {
       "name": "pip",
-      "version": "24.2",
+      "version": "26.0.1",
       "package_file": "requirements.txt"
     }
   },
@@ -18,7 +18,7 @@
       "checksum": "9b088d20665a7b613166df1092fcbeaf"
     },
     ".env": {
-      "checksum": "0e88d0bc6ec1238b60297d737a0fe230"
+      "checksum": "1f11094881dc637ec9898edd0c73d771"
     },
     ".env.example": {
       "checksum": "f148855315048019f3893865cccd387d"
@@ -27,34 +27,34 @@
       "checksum": "73eaddcedc1e792bfe0f5be5adb5eb22"
     },
     "README.md": {
-      "checksum": "93daff7c81883384fb802b0df6b6dee1"
+      "checksum": "a1a61508f984165241f664edb12c46e5"
     },
     "app/__init__.py": {
       "checksum": "d6bda277500d117c59469244f535ba80"
     },
     "app/__pycache__/__init__.cpython-312.pyc": {
-      "checksum": "707fe6f3cae7408ed704c2ae4ad6e962"
+      "checksum": "c56287fb513e2d9c96c0ac66ec9abc82"
     },
     "app/__pycache__/api.cpython-312.pyc": {
-      "checksum": "5120d7b7981499111f0826582c279283"
+      "checksum": "5a5692d0f68ec8c9d745fef0f521bfb8"
     },
     "app/__pycache__/context.cpython-312.pyc": {
-      "checksum": "5e9f2d5ee4495fc197304eab03a76774"
+      "checksum": "2d6e2bda5d227b16e0dbbf98a11c3aaa"
     },
     "app/__pycache__/guardrails.cpython-312.pyc": {
-      "checksum": "55c4f3f2e21132ac964b66094eeacd2a"
+      "checksum": "edde685dd917b6ad36208029e3360bc2"
     },
     "app/__pycache__/logging_setup.cpython-312.pyc": {
-      "checksum": "ebe6b0cfc00dcc49ee49f88a87ff927d"
+      "checksum": "4f4ceac101e4b4e0e4db7e25886feaac"
     },
     "app/__pycache__/loop.cpython-312.pyc": {
-      "checksum": "fcc959c7f80b6834ce1f905e75d89504"
+      "checksum": "6942aac518e6b8be9e877febac35aefe"
     },
     "app/__pycache__/tools.cpython-312.pyc": {
-      "checksum": "6ee2ee3141d738cbeeac72bdae2f3b0e"
+      "checksum": "755458ff0a052cd364ad805b85df4197"
     },
     "app/api.py": {
-      "checksum": "4dd16735733fcefb65cf11858f36e0b0"
+      "checksum": "27400eebe25d9a539481a8a4efde4ad1"
     },
     "app/context.py": {
       "checksum": "51bf63ab656c064fce54d0d5d24e9565"
@@ -72,16 +72,16 @@
       "checksum": "c0202e7dff339f45832809c5165d767d"
     },
     "deployme.sh": {
-      "checksum": "c62ca454757a541bdb3aa06a8d264d16"
+      "checksum": "3a837d853e60f0d9444d90f43edce636"
     },
     "logs/.gitkeep": {
       "checksum": "d41d8cd98f00b204e9800998ecf8427e"
     },
     "logs/agent.log": {
-      "checksum": "fdfde711f06c785806d8ae266a46f967"
+      "checksum": "fbbdb02e04c7a5ea3674c6a380fad802"
     },
     "manifestme.sh": {
-      "checksum": "0e2f388cd40b7e347264ad9299ad7fd6"
+      "checksum": "ed00811045ba596d18af0f5512ae1300"
     },
     "runme.sh": {
       "checksum": "0c38172fdab78b481424a0ae7e7708af"
@@ -102,10 +102,7 @@
       "checksum": "32b556439942ba5060077ff0ead455dd"
     },
     "testme.py": {
-      "checksum": "29898f843ea3d3a24fb3e9775a8b55a2"
-    },
-    "testme_local.py": {
-      "checksum": "a29b4a8a243c333984f4a14a8fe391f3"
+      "checksum": "911a3bed39332c8b0348b532a690bc14"
     }
   }
 }
