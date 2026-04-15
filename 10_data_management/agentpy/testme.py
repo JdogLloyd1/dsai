@@ -7,7 +7,7 @@
 #
 # Deploy workflow (see also README, manifestme.sh, deployme.sh):
 #   pip install rsconnect-python
-#   ./manifestme.sh   # uses --entrypoint app.api:app
+#   ./manifestme.sh   # uses rsconnect write-manifest fastapi --entrypoint app.api:app
 #   ./deployme.sh
 #
 # On Connect, set at least: OLLAMA_API_KEY, OLLAMA_HOST, OLLAMA_MODEL.

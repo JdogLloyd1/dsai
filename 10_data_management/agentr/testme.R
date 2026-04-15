@@ -20,11 +20,17 @@ if (!nzchar(base)) {
 
 cat("# Smoke test at", base, "\n\n")
 
+base = "http://localhost:8000"
+
 r1 = httr2::request(paste0(base, "/health")) |>
   httr2::req_timeout(30) |>
   httr2::req_perform()
+
 cat("health:", httr2::resp_status(r1), "\n")
 print(httr2::resp_body_json(r1, simplifyVector = TRUE))
+
+
+
 
 body = list(
   task = paste0(

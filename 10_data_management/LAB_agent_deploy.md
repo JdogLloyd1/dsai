@@ -12,7 +12,7 @@ You will deploy the same agent you ran locally to **Posit Connect** (or your cla
 
 | Track | Folder | Connect content type |
 |--------|--------|----------------------|
-| **Python** | [`agentpy/`](agentpy/) | **FastAPI** — **`rsconnect deploy api`** with **`app.api:app`** |
+| **Python** | [`agentpy/`](agentpy/) | **FastAPI** — **`rsconnect deploy fastapi`** with **`app.api:app`** |
 | **R** | [`agentr/`](agentr/) | **Plumber** — **`rsconnect::deployAPI`** with **`plumber.R`** |
 
 ---
@@ -21,7 +21,7 @@ You will deploy the same agent you ran locally to **Posit Connect** (or your cla
 
 ### 🧱 Stage 1: Manifest and deploy
 
-- [ ] **Python:** From **`agentpy/`**, run **[`manifestme.sh`](agentpy/manifestme.sh)** then **[`deployme.sh`](agentpy/deployme.sh)**, **or** follow the comments at the top of **[`agentpy/testme.py`](agentpy/testme.py)** (`rsconnect write-manifest api --entrypoint app.api:app`, then `rsconnect deploy api`).
+- [ ] **Python:** From **`agentpy/`**, run **[`manifestme.sh`](agentpy/manifestme.sh)** then **[`deployme.sh`](agentpy/deployme.sh)**, **or** follow the comments at the top of **[`agentpy/testme.py`](agentpy/testme.py)** (`rsconnect write-manifest fastapi --entrypoint app.api:app`, then `rsconnect deploy fastapi`).
 - [ ] **R:** From the **repository root**, run **`Rscript 10_data_management/agentr/manifestme.R`** (optional, if you need a fresh manifest) then **`Rscript 10_data_management/agentr/deployme.R`** — see **[`agentr/deployme.R`](agentr/deployme.R)** and **[`agentr/README.md`](agentr/README.md)** (**`readRenviron(".env")`**, **`CONNECT_SERVER`**, **`CONNECT_API_KEY`** at repo root).
 - [ ] In the Connect (or host) UI, set **`OLLAMA_API_KEY`**, **`OLLAMA_HOST`**, and **`OLLAMA_MODEL`**. Optionally set **`SERPER_API_KEY`** so preflight and **`web_search`** hit live results (omit if you accept “search disabled” behavior).
 - [ ] Ensure **`AGENT.md`** and **`skills/`** deploy with the bundle (they drive the system message and **`read_skill`**). **R** track also needs **`requirements.txt`** so **reticulate** can load **crewai_tools**.
