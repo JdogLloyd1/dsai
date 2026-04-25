@@ -1,0 +1,12 @@
+## Assignment Table
+| Staff Member | Client 1 | Client 2 | Rationale (1 sentence) |
+|--------------|----------|----------|------------------------|
+| Alex Chen | Client B – Atlas Financial Group | Client K – Summit Retail Group | Alex’s regulatory expertise and penchant for organized, detail‑driven projects align well with Atlas Financial’s compliance audit and with Summit Retail’s methodical cost‑reduction study. |
+| Brianna Okafor | Client A – Riverdale Community Health Clinic | Client E – Greenway Transit Authority | Brianna’s nonprofit background and strong stakeholder‑engagement skills suit Riverdale’s collaborative strategic planning and Greenway’s politically sensitive service redesign. |
+| Carla Mendez | Client D – Nexagen Pharmaceuticals | Client L – Vance Biomedical Research Institute | Carla’s healthcare data expertise makes her ideal for Nexagen’s KPI dashboard and Vance’s grant‑reporting data system. |
+| Dana Park | Client F – Solstice Consumer Goods | Client I – ClearView Diagnostics | Dana’s marketing creativity fits Solstice’s brand positioning, but ClearView’s fast‑moving regulatory work is a weaker fit for her junior, research‑focused skill set. |
+| Elliot Vasquez | Client C – BrightPath Schools | Client G – Meridian Capital Partners | Elliot’s high‑visibility strategy experience and existing relationship with Meridian support the rapid org‑assessment, while his change‑management strengths address BrightPath’s ambitious school expansion. |
+| Fiona Marsh | Client H – Harbor City Government (Parks Dept.) | Client J – The Holloway Foundation | Fiona’s writing excellence and independence match Harbor City’s formal capital‑planning report and the Holloway Foundation’s polished strategic memo. |
+
+## Assignment Logic Summary
+Each staff member was paired with two clients whose project scope and sector best match the consultant’s experience, communication style, and seniority. Senior consultants Alex and Carla receive data‑intensive or detail‑heavy engagements, while mid‑level Brianna and Fiona handle nonprofit and report‑centric work respectively. Elliot takes the high‑stakes, fast‑moving assignments that leverage his relationship‑building and strategic expertise. The only notable weak‑fit is Dana’s assignment to ClearView Diagnostics, flagged due to the startup’s rapid regulatory demands versus Dana’s junior, marketing‑focused background. All 12 clients are covered with exactly two assignments per staff member.
